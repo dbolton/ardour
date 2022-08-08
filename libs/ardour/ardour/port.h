@@ -140,7 +140,8 @@ public:
 	static PBD::Signal0<void> PortDrop;
 	static PBD::Signal0<void> PortSignalDrop;
 
-	static void set_speed_ratio (double s);
+	static void set_varispeed_ratio (double s); //< varispeed playback
+	static void set_resample_ratio (double session, double engine); //< SR mismatch
 	static void set_cycle_samplecnt (pframes_t n);
 
 	static samplecnt_t port_offset() { return _global_port_buffer_offset; }
@@ -158,6 +159,7 @@ public:
 
 	static pframes_t cycle_nframes () { return _cycle_nframes; }
 	static double speed_ratio () { return _speed_ratio; }
+	static double resample_ratio () { return _speed_ratio * _speed_ratio_mult; }
 
 	static uint32_t resampler_quality () { return _resampler_quality; }
 	static uint32_t resampler_latency () { return _resampler_latency; }
@@ -179,6 +181,7 @@ protected:
 	LatencyRange _private_capture_latency;
 
 	static double _speed_ratio;
+	static double _speed_ratio_mult;
 
 private:
 	std::string _name;  ///< port short name

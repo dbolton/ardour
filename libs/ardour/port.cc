@@ -46,6 +46,7 @@ bool         Port::_connecting_blocked = false;
 pframes_t    Port::_global_port_buffer_offset = 0;
 pframes_t    Port::_cycle_nframes = 0;
 double       Port::_speed_ratio = 1.0;
+double       Port::_speed_ratio_mult = 1.0;
 std::string  Port::state_node_name = X_("Port");
 uint32_t     Port::_resampler_quality = 17;
 uint32_t     Port::_resampler_latency = 16; // = _resampler_quality - 1;
@@ -732,20 +733,31 @@ Port::setup_resampler (uint32_t q)
 	_resampler_latency = q - 1;
 }
 
+/*static*/ void
+Port::set_resample_ratio (double session_rate, double engine_rate)
+{
+	if (session_rate > 0 && engine_rate > 0) {
+		_speed_ratio_mult = session_rate / engine_rate;
+	} else {
+		_speed_ratio_mult = 1.0;
+	}
+	printf ("Port::set_resample_ratio %f\n", _speed_ratio_mult);
+}
 
 /*static*/ void
-Port::set_speed_ratio (double s) {
+Port::set_varispeed_ratio (double s) {
 	if (s == 0.0 || !can_varispeed ()) {
 		/* no resampling when stopped */
 		_speed_ratio = 1.0;
 	} else {
 		/* see VMResampler::set_rratio() for min/max range */
-		_speed_ratio = std::min ((double) Config->get_max_transport_speed(), std::max (0.02, fabs (s)));
+		s *= _speed_ratio_mult;
+		_speed_ratio = std::min ((double) Config->get_max_transport_speed(), std::max (0.02, fabs (s))) / _speed_ratio_mult;
 	}
 }
 
 /*static*/ void
 Port::set_cycle_samplecnt (pframes_t n)
 {
-	_cycle_nframes = floor (n * _speed_ratio);
+	_cycle_nframes = floor (n * resample_ratio ());
 }

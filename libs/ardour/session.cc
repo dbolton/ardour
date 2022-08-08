@@ -2118,6 +2118,7 @@ Session::set_sample_rate (samplecnt_t frames_per_second)
 	else if (_base_sample_rate != frames_per_second && frames_per_second != _nominal_sample_rate) {
 		NotifyAboutSampleRateMismatch (_base_sample_rate, frames_per_second);
 	}
+	Port::set_resample_ratio (_base_sample_rate, frames_per_second);
 	_nominal_sample_rate = frames_per_second;
 
 	sync_time_vars();
